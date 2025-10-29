@@ -5,7 +5,7 @@ A 4B parameter Mixture-of-Experts language model optimized for Indian languages 
 ## Features
 
 - **Multilingual**: Support for 8 languages (English + 7 major Indian languages)
-- **Coding**: Programming knowledge across Python, JavaScript, TypeScript, etc.
+- **Coding**: Programming knowledge across Python, JavaScript, HTML, and CSS
 - **Efficient**: FP4 quantization with Megatron-LM + Transformer Engine
 - **Scalable**: Streaming data pipeline for large-scale training
 - **Failsafe**: Automatic checkpointing and resume - never lose progress on multi-day processing
@@ -16,7 +16,7 @@ A 4B parameter Mixture-of-Experts language model optimized for Indian languages 
 
 ```powershell
 # Clone repository
-git clone <your-repo>
+git clone https://github.com/Somdatta-dev/IndicMoE-4B-NVFP4.git
 cd Indic_moe_4b
 
 # Copy and configure environment
@@ -93,7 +93,7 @@ See [FAILSAFE_FEATURES.md](FAILSAFE_FEATURES.md) for complete documentation.
 - Wikipedia: Multilingual high-quality text
 - mC4: Multilingual web crawl
 - FineWeb-Edu: High-quality English educational content
-- GitHub Code: Python, JavaScript, TypeScript, HTML, CSS, Java
+- GitHub Code: Python, JavaScript, HTML, and CSS
 
 **Phase 2: Instruction Tuning** (Optional)
 - IndicInstruct: Multilingual instruction following

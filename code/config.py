@@ -70,14 +70,15 @@ DATA_CONFIG = {
                 "weight": 0.35,  # 35% (English as main language)
             },
             
-            # GitHub Code - Multi-language programming
-            "github_code": {
-                "name": "codeparrot/github-code",
-                "subsets": ["Python", "JavaScript", "TypeScript", "HTML", "CSS", "Java"],
-                "streaming": True,
-                "text_field": "code",
-                "weight": 0.20,  # 20% coding knowledge
-            },
+    # Code - ONLY Python, JavaScript, HTML, CSS (no TypeScript, Java, etc.)
+    # Using StarCoderData: pre-filtered, decontaminated, deduplicated (250B tokens)
+    "code_starcoderdata": {
+        "name": "bigcode/starcoderdata",
+        "languages": ["python", "javascript", "html", "css"],  # Language-separated dirs
+        "streaming": True,
+        "text_field": "content",
+        "weight": 0.20,  # 20% coding knowledge
+    },
         },
         
         # Phase 2: Instruction Tuning (Optional - for later)

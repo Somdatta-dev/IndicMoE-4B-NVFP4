@@ -20,6 +20,16 @@ from tokenizers import Tokenizer, models, pre_tokenizers, decoders, trainers, pr
 from tokenizers.normalizers import NFKC, Sequence as NormalizerSequence
 from transformers import PreTrainedTokenizerFast
 import datasets
+from dotenv import load_dotenv
+
+# Load environment variables from /workspace/.env
+env_path = Path("/workspace/.env")
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
+    print(f"✓ Loaded .env from {env_path}")
+else:
+    load_dotenv()  # Fallback to default search
+    print(f"⚠ Using default .env search (not found at {env_path})")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -87,17 +97,17 @@ class IndicMoETokenizerTrainer:
         self,
         data_config: Dict,
         max_samples_per_dataset: Optional[int] = 1_000_000,
-        english_ratio: float = 0.50,
-        indic_ratio: float = 0.40,
+        english_ratio: float = 0.35,
+        indic_ratio: float = 0.55,
         code_ratio: float = 0.10
     ):
         """
         Create balanced training corpus from datasets
         
-        Target distribution:
-        - English: 50%
-        - Indic languages: 40% (5.7% each for 7 languages)
-        - Code: 10%
+        Target distribution (optimized for Indic languages):
+        - English: 35% (main language, but reduced for better Indic fertility)
+        - Indic languages: 55% (7.86% each for 7 languages) - Higher for better tokenization
+        - Code: 10% (Python, JavaScript, HTML, CSS)
         """
         logger.info("=" * 80)
         logger.info("CREATING TRAINING CORPUS")
@@ -169,18 +179,35 @@ class IndicMoETokenizerTrainer:
                 "kn": "Kannada"
             }
             
+            # Map language codes to correct split names
+            lang_to_split = {
+                "hi": "hin_Deva",
+                "ta": "tam_Taml",
+                "te": "tel_Telu",
+                "bn": "ben_Beng",
+                "mr": "mar_Deva",
+                "gu": "guj_Gujr",
+                "kn": "kan_Knda"
+            }
+            
             for lang_code, lang_name in languages.items():
                 logger.info(f"  Processing {lang_name}...")
                 lang_count = 0
                 
                 try:
-                    # IndicCorpV2
+                    # IndicCorpV2 with correct split names
+                    split_name = lang_to_split.get(lang_code)
+                    if not split_name:
+                        logger.warning(f"  Skipping {lang_name} - no split mapping")
+                        continue
+                    
                     dataset = datasets.load_dataset(
                         "ai4bharat/IndicCorpV2",
                         name="indiccorp_v2",
-                        split=f"{lang_code}_Deva" if lang_code == "hi" else f"{lang_code}",
+                        split=split_name,
                         streaming=True,
-                        cache_dir=str(self.cache_dir)
+                        cache_dir=str(self.cache_dir),
+                        token=os.getenv("HUGGINGFACE_TOKEN")
                     )
                     
                     for i, sample in enumerate(dataset):
@@ -201,40 +228,53 @@ class IndicMoETokenizerTrainer:
                 except Exception as e:
                     logger.error(f"  Error loading {lang_name} data: {e}")
             
-            # 3. Code data
-            logger.info("\n[3/3] Collecting code data...")
+            # 3. Code data (ONLY: Python, HTML, CSS, JavaScript)
+            logger.info("\n[3/3] Collecting code data (Python, HTML, CSS, JS only)...")
             code_count = 0
             
-            try:
-                # The Stack (deduplicated code)
-                dataset = datasets.load_dataset(
-                    "bigcode/the-stack-dedup",
-                    split="train",
-                    streaming=True,
-                    cache_dir=str(self.cache_dir)
-                )
-                
-                for i, sample in enumerate(dataset):
-                    if code_count >= code_samples:
-                        break
+            # StarCoderData - High-quality code dataset (250B tokens, 86 languages)
+            # Pre-filtered, decontaminated, PII-removed, deduplicated
+            # Language-separated for efficient loading
+            languages_to_load = ['python', 'javascript', 'html', 'css']
+            
+            for lang in languages_to_load:
+                try:
+                    logger.info(f"  Loading {lang.upper()}...")
+                    dataset = datasets.load_dataset(
+                        "bigcode/starcoderdata",
+                        data_dir=lang,
+                        split="train",
+                        streaming=True,
+                        cache_dir=str(self.cache_dir),
+                        token=os.getenv("HUGGINGFACE_TOKEN")
+                    )
                     
-                    content = sample.get('content', '')
-                    lang = sample.get('lang', '')
+                    lang_count = 0
+                    target_per_lang = code_samples // 4  # Split evenly among 4 languages
                     
-                    # Focus on major languages
-                    if lang in ['Python', 'JavaScript', 'TypeScript', 'HTML', 'CSS', 'Java']:
+                    for i, sample in enumerate(dataset):
+                        if lang_count >= target_per_lang:
+                            break
+                        
+                        content = sample.get('content', '')
+                        
+                        # Quality filter: minimum length
                         if content and len(content) > 100:
                             f.write(content.strip() + '\n')
                             code_count += 1
+                            lang_count += 1
                             corpus_stats['code'] += 1
+                            corpus_stats[f'code_{lang}'] = corpus_stats.get(f'code_{lang}', 0) + 1
+                        
+                        if (lang_count + 1) % 5000 == 0:
+                            logger.info(f"    {lang.upper()}: {lang_count:,} / {target_per_lang:,}")
                     
-                    if (i + 1) % 10000 == 0:
-                        logger.info(f"  Code: {code_count:,} / {code_samples:,}")
+                    logger.info(f"  ✓ {lang.upper()}: {lang_count:,} samples")
                 
-                logger.info(f"✓ Code data collected: {code_count:,} samples")
+                except Exception as e:
+                    logger.error(f"  Error loading {lang} data: {e}")
             
-            except Exception as e:
-                logger.error(f"Error loading code data: {e}")
+            logger.info(f"✓ Total code data collected: {code_count:,} samples")
         
         # Print statistics
         logger.info("\n" + "=" * 80)
@@ -243,9 +283,16 @@ class IndicMoETokenizerTrainer:
         total = sum(corpus_stats.values())
         logger.info(f"Total samples: {total:,}")
         
-        for category, count in corpus_stats.items():
+        for category, count in sorted(corpus_stats.items()):
             pct = (count / total * 100) if total > 0 else 0
             logger.info(f"  {category}: {count:,} ({pct:.1f}%)")
+        
+        # Show code language breakdown if available
+        code_langs = {k: v for k, v in corpus_stats.items() if k.startswith('code_')}
+        if code_langs:
+            logger.info("\nCode language breakdown:")
+            for lang, count in sorted(code_langs.items()):
+                logger.info(f"  {lang}: {count:,}")
         
         logger.info(f"\n✓ Corpus saved to: {corpus_file}")
         return str(corpus_file)
@@ -422,6 +469,7 @@ class IndicMoETokenizerTrainer:
 
 def main():
     import argparse
+    import shutil
     
     parser = argparse.ArgumentParser(description="Train custom tokenizer for IndicMoE-4B")
     parser.add_argument(
@@ -448,8 +496,33 @@ def main():
         action="store_true",
         help="Skip corpus creation if already exists"
     )
+    parser.add_argument(
+        "--no-cleanup",
+        action="store_true",
+        help="Skip automatic cleanup of previous tokenizer and corpus"
+    )
     
     args = parser.parse_args()
+    
+    # Auto-cleanup: Remove old tokenizer and corpus unless --no-cleanup
+    if not args.no_cleanup:
+        logger.info("=" * 80)
+        logger.info("CLEANUP: Removing previous artifacts")
+        logger.info("=" * 80)
+        
+        # Remove old tokenizer directory
+        tokenizer_path = Path(args.output_dir)
+        if tokenizer_path.exists():
+            logger.info(f"  Removing old tokenizer: {tokenizer_path}")
+            shutil.rmtree(tokenizer_path)
+        
+        # Remove old corpus file
+        corpus_path = Path("/workspace/data/cache/tokenizer_training_corpus.txt")
+        if corpus_path.exists():
+            logger.info(f"  Removing old corpus: {corpus_path}")
+            corpus_path.unlink()
+        
+        logger.info("✓ Cleanup complete\n")
     
     logger.info("=" * 80)
     logger.info("INDICMOE-4B TOKENIZER TRAINING")
