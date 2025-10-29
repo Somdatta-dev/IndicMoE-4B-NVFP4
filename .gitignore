@@ -1,0 +1,282 @@
+# =============================================================================
+# IndicMoE-4B .gitignore
+# =============================================================================
+
+# =============================================================================
+# Environment & Secrets
+# =============================================================================
+.env
+.env.*
+!env.example
+*.key
+*.pem
+secrets/
+credentials/
+
+# =============================================================================
+# Data Directories (Large files - don't commit)
+# =============================================================================
+data/
+dataset/
+datasets/
+raw_data/
+processed_data/
+
+# Specific data folders
+/data/
+/dataset/
+/datasets/
+
+# Cache directories
+cache/
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# HuggingFace cache
+.huggingface/
+hf_cache/
+
+# =============================================================================
+# Model & Training Outputs
+# =============================================================================
+checkpoints/
+*.ckpt
+*.pt
+*.pth
+*.bin
+*.safetensors
+model_output/
+runs/
+logs/
+tensorboard/
+wandb/
+
+# Tokenizers (trained models - can be large)
+tokenizers/
+*.vocab
+*.model
+merges.txt
+
+# =============================================================================
+# Documentation - Only README.md allowed
+# =============================================================================
+# Allow only README.md, ignore all other markdown files
+*.md
+!README.md
+
+# =============================================================================
+# Python
+# =============================================================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.pytest_cache/
+cover/
+*.cover
+*.log
+nosetests.xml
+coverage.xml
+*.coveragerc
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+.idea_modules/
+
+# =============================================================================
+# VS Code
+# =============================================================================
+.vscode/
+*.code-workspace
+.history/
+
+# =============================================================================
+# Operating System
+# =============================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# Docker
+# =============================================================================
+# Don't ignore docker-compose.yml (we need it)
+# But ignore Docker temp files
+.docker/
+docker-compose.override.yml
+
+# =============================================================================
+# Temporary & Backup Files
+# =============================================================================
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+.#*
+\#*#
+
+# =============================================================================
+# Compressed Files (unless specifically needed)
+# =============================================================================
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.gz
+*.bz2
+*.xz
+
+# =============================================================================
+# Large Media Files
+# =============================================================================
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.mp3
+*.wav
+*.flac
+
+# =============================================================================
+# Database Files
+# =============================================================================
+*.db
+*.sqlite
+*.sqlite3
+
+# =============================================================================
+# Node.js (if using any JS tools)
+# =============================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =============================================================================
+# Custom Project Files
+# =============================================================================
+# Scratch files
+scratch/
+temp/
+tmp/
+test_outputs/
+
+# Personal notes
+notes.txt
+TODO.txt
+todo.txt
+
+# Experiments
+experiments/
+sandbox/
+
+# Old versions
+old/
+backup/
+archive/
+
+# =============================================================================
+# Git Attributes
+# =============================================================================
+*.gitattributes
+

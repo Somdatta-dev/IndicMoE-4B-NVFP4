@@ -1,0 +1,39 @@
+# =============================================================================
+# Requirements for IndicMoE-4B Data Processing
+# Container: nvcr.io/nvidia/pytorch:25.09-py3
+# 
+# Pre-installed in container (DO NOT REINSTALL):
+# - Python 3.12
+# - PyTorch 2.9.0a0+50eac811a6
+# - CUDA 13.0.1
+# - Transformer Engine 2.7
+# - TensorBoard (via JupyterLab 4.3.6)
+# - TensorRT 10.13.3.9
+# =============================================================================
+
+# HuggingFace Libraries
+datasets>=3.1.0
+transformers>=4.45.0
+tokenizers>=0.20.0
+accelerate>=1.1.0
+huggingface-hub>=0.26.0
+
+# Data Processing
+pyarrow>=18.0.0
+pandas>=2.2.0
+fastparquet>=2024.5.0
+
+# Tokenization
+sentencepiece>=0.2.0
+protobuf>=5.28.0
+
+# Utilities
+tqdm>=4.67.0
+python-dotenv>=1.0.1
+
+# Monitoring (optional)
+wandb>=0.18.0
+
+# Megatron-LM (installed separately via setup.ps1)
+# NOTE: Megatron-LM will be installed from source in the setup script
+
